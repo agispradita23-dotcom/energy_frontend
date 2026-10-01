@@ -36,8 +36,10 @@ export function ambilRiwayatHarian(limit = 45) {
 }
 
 /** Mengambil batch prediksi WMA-7 terbaru yang tersimpan. */
-export function ambilPrediksi() {
-  return ambilJSON(`${BASE_URL}/api/energy/predict?device_id=${DEVICE_ID}`)
+export async function ambilPrediksi() {
+  const respons = await ambilJSON(`${BASE_URL}/api/energy/predict?device_id=${DEVICE_ID}`)
+  // Ambil array di dalam properti 'data'. Jika data tidak ada atau bukan array, kembalikan array kosong []
+  return respons?.data && Array.isArray(respons.data) ? respons.data : []
 }
 
 export { DEVICE_ID }
