@@ -44,15 +44,16 @@ export default function PredictionChart() {
         <p className="panel-title">Prediksi 15 hari ke depan (WMA-7)</p>
         <div className="state-message">
           Belum ada prediksi tersimpan. Prediksi membutuhkan minimal 7 hari
-          data historis (POST /api/energy/predict/compute).
+          data historis.
         </div>
       </div>
     )
   }
 
+  // DI SINI PERBAIKANNYA: Mengubah d.prediksi_kwh menjadi d.prediksi_daya
   const dataGrafik = data.map((d) => ({
     hari: `H+${d.horizon}`,
-    kwh: d.prediksi_daya,
+    kwh: d.prediksi_daya, 
   }))
 
   return (
