@@ -52,7 +52,7 @@ export default function PredictionChart() {
 
   const dataGrafik = data.map((d) => ({
     hari: `H+${d.horizon}`,
-    kwh: d.prediksi_kwh,
+    kwh: d.prediksi_daya,
   }))
 
   return (
