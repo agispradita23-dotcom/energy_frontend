@@ -50,11 +50,16 @@ export default function PredictionChart() {
     )
   }
 
-  // DI SINI PERBAIKANNYA: Mengubah d.prediksi_kwh menjadi d.prediksi_daya
-  const dataGrafik = data.map((d) => ({
+ const dataGrafik = data.map((d) => {
+  // Sistem otomatis mencari nama kolom apa pun yang dikirim oleh backend Anda
+  const nilaiMentah = d.prediksi_daya ?? d.prediksi_kwh ?? d.nilai_prediksi ?? d.prediksi_energi ?? d.nilai;
+  
+  return {
     hari: `H+${d.horizon}`,
-    kwh: d.prediksi_daya, 
-  }))
+    // Memaksa data menjadi tipe Number (Float) agar garis Recharts langsung meliuk muncul
+    kwh: Number(nilaiMentah) || 0, 
+  };
+})
 
   return (
     <div className="panel">
