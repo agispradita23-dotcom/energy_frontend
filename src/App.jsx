@@ -14,15 +14,15 @@ export default function App() {
   const [rataRataKwh, setRataRataKwh] = useState(0)
   const [prediksiBesok, setPrediksiBesok] = useState(0)
 
-  useEffect(() => {
-    // 1. Tarik data riwayat harian untuk kalkulasi total dan rata-rata
-    ambilRiwayatHarian()
+    useEffect(() => {
+    // KOREKSI: Tambahkan parameter 45 hari agar menarik rentang data dummy Anda secara utuh
+    ambilRiwayatHarian(45)
       .then((data) => {
         if (data && Array.isArray(data)) {
           setRiwayatData(data)
           
-          // Hitung Total kWh (Mengakumulasikan kolom energi_kwh)
-          const total = data.reduce((sum, item) => sum + (Number(item.energi_kwh) || 0), 0)
+          // KOREKSI: Menggunakan properti item.konsumsi_kwh yang sesuai dengan backend
+          const total = data.reduce((sum, item) => sum + (Number(item.konsumsi_kwh) || 0), 0)
           setTotalKwh(total)
 
           // Hitung Estimasi Biaya (Tarif PLN R-1/TR Rp 1.444,70 per kWh)
@@ -41,7 +41,6 @@ export default function App() {
         if (data && Array.isArray(data)) {
           setPrediksiData(data)
           
-          // Cari data dengan horizon = 1 (Prediksi Hari Esok)
           const besok = data.find((item) => item.horizon === 1)
           if (besok) {
             const nilaiBesok = besok.prediksi_daya ?? besok.prediksi_kwh ?? besok.nilai_prediksi ?? besok.prediksi_energi ?? besok.nilai
@@ -51,6 +50,7 @@ export default function App() {
       })
       .catch((err) => console.error("Gagal memuat prediksi untuk dashboard:", err))
   }, [])
+
 
   return (
     <div className="container">

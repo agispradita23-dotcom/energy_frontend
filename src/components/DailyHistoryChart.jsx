@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react'
 import {
   ResponsiveContainer,
   LineChart,
@@ -8,27 +7,11 @@ import {
   CartesianGrid,
   Tooltip,
 } from 'recharts'
-import { ambilRiwayatHarian } from '../api'
 
-export default function DailyHistoryChart() {
-  const [data, setData] = useState(null)
-  const [error, setError] = useState(null)
-
-  useEffect(() => {
-    ambilRiwayatHarian(45)
-      .then((hasil) => setData(hasil))
-      .catch((err) => setError(err.message))
-  }, [])
-
-  if (error) {
-    return (
-      <div className="panel">
-        <p className="panel-title">Konsumsi harian</p>
-        <div className="state-message error">Gagal memuat data: {error}</div>
-      </div>
-    )
-  }
-
+// KOREKSI: Menerima variabel data langsung dari App.jsx lewat props
+export default function DailyHistoryChart({ data }) {
+  
+  // Jika data utama belum selesai di-fetch dari App.jsx
   if (!data) {
     return (
       <div className="panel">
