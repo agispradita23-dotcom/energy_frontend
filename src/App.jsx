@@ -1,51 +1,103 @@
-import { useCallback, useState } from 'react'
+import { useEffect, useState } from 'react'
 import LiveReadings from './components/LiveReadings'
 import DailyHistoryChart from './components/DailyHistoryChart'
 import PredictionChart from './components/PredictionChart'
-import { DEVICE_ID } from './api'
-
-function formatWaktu(isoString) {
-  if (!isoString) return '—'
-  const d = new Date(isoString)
-  return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-}
+import { ambilRiwayatHarian, ambilPrediksi } from './api'
 
 export default function App() {
-  const [online, setOnline] = useState(null)
-  const [waktuTerakhir, setWaktuTerakhir] = useState(null)
+  const [riwayatData, setRiwayatData] = useState([])
+  const [prediksiData, setPrediksiData] = useState([])
 
-  // useCallback agar referensi fungsi stabil -- mencegah LiveReadings
-  // membentuk ulang interval polling-nya setiap kali App re-render.
-  const handleStatusChange = useCallback((status, waktu) => {
-    setOnline(status)
-    if (waktu) setWaktuTerakhir(waktu)
+  // State untuk metrik ringkasan dashboard
+  const [totalKwh, setTotalKwh] = useState(0)
+  const [estimasiBiaya, setEstimasiBiaya] = useState(0)
+  const [rataRataKwh, setRataRataKwh] = useState(0)
+  const [prediksiBesok, setPrediksiBesok] = useState(0)
+
+  useEffect(() => {
+    // 1. Tarik data riwayat harian untuk kalkulasi total dan rata-rata
+    ambilRiwayatHarian()
+      .then((data) => {
+        if (data && Array.isArray(data)) {
+          setRiwayatData(data)
+          
+          // Hitung Total kWh (Mengakumulasikan kolom energi_kwh)
+          const total = data.reduce((sum, item) => sum + (Number(item.energi_kwh) || 0), 0)
+          setTotalKwh(total)
+
+          // Hitung Estimasi Biaya (Tarif PLN R-1/TR Rp 1.444,70 per kWh)
+          setEstimasiBiaya(total * 1444.70)
+
+          // Hitung Rata-rata Harian
+          const rataRata = data.length > 0 ? total / data.length : 0
+          setRataRataKwh(rataRata)
+        }
+      })
+      .catch((err) => console.error("Gagal memuat riwayat untuk dashboard:", err))
+
+    // 2. Tarik data prediksi untuk mengambil nilai H+1
+    ambilPrediksi()
+      .then((data) => {
+        if (data && Array.isArray(data)) {
+          setPrediksiData(data)
+          
+          // Cari data dengan horizon = 1 (Prediksi Hari Esok)
+          const besok = data.find((item) => item.horizon === 1)
+          if (besok) {
+            const nilaiBesok = besok.prediksi_daya ?? besok.prediksi_kwh ?? besok.nilai_prediksi ?? besok.prediksi_energi ?? besok.nilai
+            setPrediksiBesok(Number(nilaiBesok) || 0)
+          }
+        }
+      })
+      .catch((err) => console.error("Gagal memuat prediksi untuk dashboard:", err))
   }, [])
 
   return (
-    <div className="app-shell">
-      <header className="app-header">
-        <div>
-          <h1>Energy Monitor</h1>
-          <span className="device-id">{DEVICE_ID}</span>
-        </div>
-        <div className="status-line">
-          <span className={`status-dot ${online === false ? 'offline' : ''}`} />
-          {online === null && 'Menghubungkan...'}
-          {online === true && `Data terakhir ${formatWaktu(waktuTerakhir)} UTC`}
-          {online === false && 'Backend tidak terjangkau'}
-        </div>
+    <div className="container">
+      <header className="header">
+        <h1 className="header-title">Energy Monitor</h1>
+        <p className="header-subtitle">esp32-01</p>
       </header>
 
-      <LiveReadings onStatusChange={handleStatusChange} />
+      {/* Tambahan Komponen: Baris Kartu Informasi Ringkasan KPI Dashboard */}
+      <div className="dashboard-summary-grid">
+        <div className="summary-card">
+          <p className="card-label">Total Konsumsi Energi</p>
+          <p className="card-value">
+            {totalKwh.toFixed(4)} <span className="card-unit">kWh</span>
+          </p>
+        </div>
 
-      <div className="chart-grid">
-        <DailyHistoryChart />
-        <PredictionChart />
+        <div className="summary-card">
+          <p className="card-label">Estimasi Biaya (PLN)</p>
+          <p className="card-value">
+            Rp {estimasiBiaya.toLocaleString('id-ID', { maximumFractionDigits: 0 })}
+          </p>
+        </div>
+
+        <div className="summary-card">
+          <p className="card-label">Rata-rata Konsumsi</p>
+          <p className="card-value">
+            {rataRataKwh.toFixed(4)} <span className="card-unit">kWh/hari</span>
+          </p>
+        </div>
+
+        <div className="summary-card highlight">
+          <p className="card-label">Prediksi Besok (H+1)</p>
+          <p className="card-value">
+            {prediksiBesok.toFixed(4)} <span className="card-unit">kWh</span>
+          </p>
+        </div>
       </div>
 
-      <footer className="app-footer">
-        {DEVICE_ID} · refresh pembacaan tiap 5 detik · prediksi WMA-7
-      </footer>
+      {/* Grid Monitor Sensor Utama */}
+      <LiveReadings />
+
+      {/* Grid Dua Visualisasi Grafik */}
+      <div className="charts-grid">
+        <DailyHistoryChart data={riwayatData} />
+        <PredictionChart data={prediksiData} />
+      </div>
     </div>
   )
 }

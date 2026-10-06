@@ -210,3 +210,45 @@ body {
   color: var(--text-muted);
   font-family: var(--font-mono);
 }
+
+/* Tata Letak Grid untuk Kartu Ringkasan Informasi */
+.dashboard-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+/* Gaya Dasar Kartu Informasi */
+.summary-card {
+  background: #141b2b;
+  border: 1px solid rgba(231, 236, 243, 0.08);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+/* Memberikan aksen warna kuning border khusus untuk kartu Prediksi WMA-7 */
+.summary-card.highlight {
+  border-color: rgba(245, 166, 35, 0.35);
+}
+
+.card-label {
+  color: #8b96a8;
+  font-size: 13px;
+  margin: 0 0 8px 0;
+  font-weight: 500;
+}
+
+.card-value {
+  color: #ffffff;
+  font-size: 24px;
+  font-weight: 600;
+  font-family: 'IBM Plex Mono', monospace;
+  margin: 0;
+}
+
+.card-unit {
+  font-size: 14px;
+  color: #8b96a8;
+  font-weight: 400;
+}
