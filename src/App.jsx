@@ -25,8 +25,8 @@ export default function App() {
           const total = data.reduce((sum, item) => sum + (Number(item.konsumsi_kwh) || 0), 0)
           setTotalKwh(total)
 
-          // Hitung Estimasi Biaya (Tarif PLN R-1/TR Rp 1.444,70 per kWh)
-          setEstimasiBiaya(total * 1444.70)
+          // Hitung Estimasi Biaya (Tarif PLN R-1/TR Rp 1.352 per kWh)
+          setEstimasiBiaya(total * 1352)
 
           // Hitung Rata-rata Harian
           const rataRata = data.length > 0 ? total / data.length : 0
