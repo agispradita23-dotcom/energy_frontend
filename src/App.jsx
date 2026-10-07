@@ -19,20 +19,27 @@ export default function App() {
     ambilRiwayatHarian(45)
       .then((data) => {
         if (data && Array.isArray(data)) {
-          setRiwayatData(data)
-          
-          // KOREKSI: Menggunakan properti item.konsumsi_kwh yang sesuai dengan backend
-          const total = data.reduce((sum, item) => sum + (Number(item.konsumsi_kwh) || 0), 0)
-          setTotalKwh(total)
+          // Dapatkan string tanggal hari ini dalam format lokal (YYYY-MM-DD)
+          const hariIni = new Date().toISOString().split('T')[0];
 
-          // Hitung Estimasi Biaya (Tarif PLN R-1/TR Rp 1.352 per kWh)
-          setEstimasiBiaya(total * 1352)
+          // FILTER: Hanya gunakan data yang tanggalnya BUKAN hari ini
+          const dataSelesai = data.filter(item => item.tanggal !== hariIni);
 
-          // Hitung Rata-rata Harian
-          const rataRata = data.length > 0 ? total / data.length : 0
-          setRataRataKwh(rataRata)
-        }
+          setRiwayatData(dataSelesai); // Render grafik hanya dari hari yang sudah selesai
+      
+          // Hitung Total kWh dari data yang sudah difilter bersih
+          const total = dataSelesai.reduce((sum, item) => sum + (Number(item.konsumsi_kwh) || 0), 0);
+          setTotalKwh(total);
+
+          // Hitung Estimasi Biaya (Tarif 900 VA Non-Subsidi)
+          setEstimasiBiaya(total * 1352);
+
+          // Hitung Rata-rata Harian yang valid
+          const rataRata = dataSelesai.length > 0 ? total / dataSelesai.length : 0;
+          setRataRataKwh(rataRata);
+       }
       })
+
       .catch((err) => console.error("Gagal memuat riwayat untuk dashboard:", err))
 
     // 2. Tarik data prediksi untuk mengambil nilai H+1
